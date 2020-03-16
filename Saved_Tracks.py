@@ -10,9 +10,11 @@ import credentials
 from datetime import datetime
 from pprint import pprint
 import functions
+import push_me
 
 saved_remove_list = [] #create list of songs to remove from saved at end
 track_dict = functions.user_saved_tracks() #generate saved track dictionary
+pprint(track_dict)
 for key in track_dict.keys():
   saved_remove_list.append(key) #add song ids to list to be removed
 
@@ -37,6 +39,7 @@ for x in quarter_dict: #create list of playlist names
 final_playlist_dict = {} #holds playlist names/ids
 
 for x in playlist_list: #checks by name ex 2017 Q4, gets playlist IDS or creates them
+    #input is a playlist name string (x)
     final_playlist_dict[x] = functions.playlist_creation(x)
 
 plist_and_tracks = {}
@@ -50,7 +53,16 @@ for x in quarter_dict: #creates dictionary of playlist IDS as keys and track lis
 
 exclusion_list = functions.exclusion_terms() #creates exclusion terms
 for playlist in plist_and_tracks: #for each playlist, add associated track list
-    functions.add_to_playlist(playlist,plist_and_tracks[playlist],exclusion_list)
+    add_list, remove_list = functions.add_to_playlist_return(playlist,plist_and_tracks[playlist],exclusion_list)
+    ########### added the add_list and remove_list
+    #### remove_list are tracks that are excluded
+
+    for x in add_list:
+        push_me.notify("New Track Added",add_list[x]['artist']+" - "+add_list[x]['title'],'-2')
+
+    for x in remove_list:
+        push_me.notify("Duplicate Track!",remove_list[x]['artist']+" - "+remove_list[x]['title'],'-2')
+
 
 if not saved_remove_list:
     print("0 songs to be moved and removed from saved")

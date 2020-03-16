@@ -1,0 +1,7 @@
+#!/bin/bash
+
+#Used to cd into directory and run with cron
+
+cd /home/havens/Spotifies
+
+/usr/bin/python3.6 /home/havens/Spotifies/Saved_Tracks.py

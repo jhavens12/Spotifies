@@ -170,6 +170,16 @@ def track_info_search(track_ids):
 def remove_from_playlist(playlist_id,track_list):
 
     if track_list:
+
+        #print info
+        print(str(len(track_list))+" songs will be removed from the playlist")
+        print("*******************************")
+        track_list_info = track_info_search(track_list) #look up song information to print out
+        for track in track_list_info:
+            print(track_list_info[track]['artist']+" - "+track_list_info[track]['title']+" - "+track_list_info[track]['album'])
+        print()
+
+
         sp = spotipy.Spotify(auth=token)
         sp.trace = False
         sp.user_playlist_remove_all_occurrences_of_tracks(username, playlist_id, track_list, snapshot_id=None)
@@ -332,6 +342,68 @@ def add_to_playlist(playlist_id,track_list,exclusion_list):
                     sp = spotipy.Spotify(auth=token)
                     sp.trace = False
                     results = sp.user_playlist_add_tracks(username, playlist_id, current_list) #adds those tracks
+
+def add_to_playlist_return(playlist_id,track_list,exclusion_list):
+    #input is list of track UUIDs, list of terms to be excluded
+    extended_tracks = extended_playlist_search(exclusion_list) #finds tracks from other playlists to compare to
+    print("Adding songs to playlist")
+    print("************************")
+    print()
+    add_list = []
+    add_list_info = []
+    remove_list = []
+    remove_list_info = []
+
+    for song in track_list: #for the track
+        if song in extended_tracks: #if song is in exclusions
+            remove_list.append(song) #add to remove list, ie will not be added
+        else:
+            add_list.append(song) #add song to add list to be added
+
+    if not add_list: #checks to see if list is empty
+        print("add_list is Empty, No songs will be added")
+        print("*****************************************")
+        print()
+
+        print(str(len(remove_list))+" songs are in the exclusions list")
+        print("*******************************")
+        remove_list_info = track_info_search(remove_list) #look up song information to print out
+        for track in remove_list_info:
+            print(remove_list_info[track]['artist']+" - "+remove_list_info[track]['title']+" - "+remove_list_info[track]['album'])
+        print()
+    else:
+        print(str(len(add_list))+" songs will be added to the playlist")
+        print("*******************************")
+        add_list_info = track_info_search(add_list) #look up song information to print out
+        for track in add_list_info:
+            print(add_list_info[track]['artist']+" - "+add_list_info[track]['title']+" - "+add_list_info[track]['album'])
+        print()
+
+        if len(remove_list) != 0:
+            print(str(len(remove_list))+" songs are in the exclusions list")
+            print("*******************************")
+            remove_list_info = track_info_search(remove_list) #look up song information to print out
+            for track in remove_list_info:
+                print(remove_list_info[track]['artist']+" - "+remove_list_info[track]['title']+" - "+remove_list_info[track]['album'])
+            print()
+        else:
+            print("0 songs are in the exclusions list")
+            print("*******************************")
+            print()
+
+        if len(add_list) < 100:
+            sp = spotipy.Spotify(auth=token)
+            sp.trace = False
+            results = sp.user_playlist_add_tracks(username, playlist_id, add_list)
+        else:
+                list_of_lists = [add_list[i:i+100] for i in range(0, len(add_list), 100)]
+                for current_list in list_of_lists:
+                    sp = spotipy.Spotify(auth=token)
+                    sp.trace = False
+                    results = sp.user_playlist_add_tracks(username, playlist_id, current_list) #adds those tracks
+
+    return add_list_info,remove_list_info #19/7/22
+
 
 def get_devices():
     sp = spotipy.Spotify(auth=token)
